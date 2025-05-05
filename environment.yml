@@ -113,6 +113,7 @@ dependencies:
   - pillow=11.1.0=py310hcea889d_0
   - pip=25.0=py310h06a4308_0
   - pixman=0.40.0=h7f8727e_1
+  - psutil=5.9.0=py310h5eee18b_1
   - pysocks=1.7.1=py310h06a4308_0
   - python=3.10.16=he870216_1
   - pytorch=2.5.1=py3.10_cpu_0
@@ -127,7 +128,6 @@ dependencies:
   - tbb=2021.8.0=hdb19cb5_0
   - tesseract=5.2.0=h6a678d5_2
   - tk=8.6.14=h39e8969_0
-  - torchaudio=2.5.1=py310_cpu
   - torchvision=0.15.2=cuda118py310h196c800_0
   - typing_extensions=4.12.2=py310h06a4308_0
   - tzdata=2025a=h04d1e81_0
