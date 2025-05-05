@@ -1,6 +1,3 @@
-'''
-main.py use for deploying detection.tflite on Raspberry Pi 3 
-'''
 import torch
 import tflite_runtime.interpreter as tflite
 import numpy as np
@@ -10,8 +7,6 @@ import matplotlib.pyplot as plt
 import os
 import psutil
 import time
-import argparse
-from datetime import datetime
 
 def build_det_helper():
     """Khởi tạo các thành phần xử lý đầu ra của YOLO"""
@@ -110,118 +105,55 @@ def measure_inference_time(interpreter, input_data):
     end_time = time.time()
     return (end_time - start_time) * 1000  # Convert to milliseconds
 
-def save_detection_result(image, bboxes, output_dir):
-    """Lưu kết quả phát hiện"""
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = os.path.join(output_dir, f"detection_{timestamp}.jpg")
-    image.save(output_path)
-    return output_path
-
-def run_detection(interpreter, nms_layer, output_layers, image_path, output_dir, show_result=False):
-    """Chạy phát hiện trên một ảnh"""
-    try:
-        # Đo thời gian inference
-        image = Image.open(image_path).convert("RGB")
-        input_shape = interpreter.get_input_details()[0]['shape']
-        image = image.resize(input_shape[1:3][::-1])
-        image_np = preprocess_image(image)
-        
-        # Thực hiện inference
-        inference_time = measure_inference_time(interpreter, image_np)
-        print(f"Inference time: {inference_time:.2f} ms")
-        
-        # Xử lý kết quả
-        result_image = detect_and_draw(image_path, interpreter, nms_layer, output_layers)
-        
-        # Lưu kết quả
-        output_path = save_detection_result(result_image, None, output_dir)
-        print(f"Saved result to: {output_path}")
-        
-        if show_result:
-            plt.figure(figsize=(10, 10))
-            plt.imshow(result_image)
-            plt.axis('off')
-            plt.show()
-            
-        return True
-    except Exception as e:
-        print(f"Error processing image {image_path}: {str(e)}")
-        return False
-
 def main():
-    parser = argparse.ArgumentParser(description='Human Detection on Raspberry Pi')
-    parser.add_argument('--model', type=str, default='detection.tflite',
-                      help='Path to TFLite model')
-    parser.add_argument('--input', type=str, default='images_test',
-                      help='Input image or directory')
-    parser.add_argument('--output', type=str, default='results',
-                      help='Output directory for results')
-    parser.add_argument('--show', action='store_true',
-                      help='Show detection results')
-    parser.add_argument('--continuous', action='store_true',
-                      help='Run in continuous mode')
-    args = parser.parse_args()
-
-    # Tạo thư mục output nếu chưa tồn tại
-    os.makedirs(args.output, exist_ok=True)
-
     # Load model
-    print(f"Loading model: {args.model}")
-    model_size = get_model_size(args.model)
+    MODEL_PATH = "/home/vuong/my_project/human-detection/detection.tflite"
+    
+    # Kiểm tra kích thước model
+    model_size = get_model_size(MODEL_PATH)
     print(f"Model size: {model_size:.2f} MB")
     
+    # Kiểm tra RAM trước khi load model
     initial_memory = get_memory_usage()
     print(f"Initial memory usage: {initial_memory:.2f} MB")
     
-    interpreter = tflite.Interpreter(model_path=args.model)
+    interpreter = tflite.Interpreter(model_path=MODEL_PATH)
     interpreter.allocate_tensors()
     
+    # Kiểm tra RAM sau khi load model
     after_load_memory = get_memory_usage()
     print(f"Memory usage after loading model: {after_load_memory:.2f} MB")
     print(f"Memory increase: {after_load_memory - initial_memory:.2f} MB")
     
+    # Kiểm tra CPU usage
     cpu_usage = get_cpu_usage()
     print(f"CPU usage: {cpu_usage}%")
 
     # Khởi tạo YOLO helpers
     nms_layer, output_layers = build_det_helper()
 
-    if args.continuous:
-        print("Running in continuous mode...")
-        while True:
-            try:
-                # Tìm tất cả ảnh trong thư mục input
-                image_files = [f for f in os.listdir(args.input) 
-                             if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-                
-                for image_file in image_files:
-                    image_path = os.path.join(args.input, image_file)
-                    print(f"\nProcessing: {image_path}")
-                    run_detection(interpreter, nms_layer, output_layers, 
-                                image_path, args.output, args.show)
-                
-                time.sleep(1)  # Đợi 1 giây trước khi quét lại
-                
-            except KeyboardInterrupt:
-                print("\nStopping continuous mode...")
-                break
-            except Exception as e:
-                print(f"Error in continuous mode: {str(e)}")
-                time.sleep(1)
-    else:
-        # Xử lý một ảnh hoặc thư mục
-        if os.path.isdir(args.input):
-            image_files = [f for f in os.listdir(args.input) 
-                         if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-            for image_file in image_files:
-                image_path = os.path.join(args.input, image_file)
-                print(f"\nProcessing: {image_path}")
-                run_detection(interpreter, nms_layer, output_layers, 
-                            image_path, args.output, args.show)
-        else:
-            print(f"\nProcessing: {args.input}")
-            run_detection(interpreter, nms_layer, output_layers, 
-                        args.input, args.output, args.show)
+    # Test images
+    test_images = [
+        "/home/vuong/my_project/human-detection/images_test/image.png",
+    ]
+
+    # Hiển thị kết quả
+    plt.figure(figsize=(15, 5))
+    for i, image_path in enumerate(test_images, 1):
+        plt.subplot(1, 2, i)
+        
+        # Đo thời gian inference
+        image = Image.open(image_path).convert("RGB")
+        input_shape = interpreter.get_input_details()[0]['shape']
+        image = image.resize(input_shape[1:3][::-1])
+        image_np = preprocess_image(image)
+        inference_time = measure_inference_time(interpreter, image_np)
+        print(f"Inference time: {inference_time:.2f} ms")
+        
+        result_image = detect_and_draw(image_path, interpreter, nms_layer, output_layers)
+        plt.imshow(result_image)
+        plt.axis('off')
+    plt.show()
 
 if __name__ == "__main__":
     main()
