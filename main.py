@@ -86,21 +86,21 @@ def detect_and_draw(image_path, interpreter, nms_layer, output_layers):
         # print("Detected person at:", bbox)
     return image
 
-def get_model_size(model_path):
-    """Lấy kích thước của model file"""
-    size_bytes = os.path.getsize(model_path)
-    size_mb = size_bytes / (1024 * 1024)
-    return size_mb
+# def get_model_size(model_path):
+#     """Lấy kích thước của model file"""
+#     size_bytes = os.path.getsize(model_path)
+#     size_mb = size_bytes / (1024 * 1024)
+#     return size_mb
 
-def get_memory_usage():
-    """Lấy thông tin về RAM đang sử dụng"""
-    process = psutil.Process()
-    memory_info = process.memory_info()
-    return memory_info.rss / (1024 * 1024)  # Convert to MB
+# def get_memory_usage():
+#     """Lấy thông tin về RAM đang sử dụng"""
+#     process = psutil.Process()
+#     memory_info = process.memory_info()
+#     return memory_info.rss / (1024 * 1024)  # Convert to MB
 
-def get_cpu_usage():
-    """Lấy thông tin về CPU đang sử dụng"""
-    return psutil.cpu_percent()
+# def get_cpu_usage():
+#     """Lấy thông tin về CPU đang sử dụng"""
+#     return psutil.cpu_percent()
 
 def measure_inference_time(interpreter, input_data):
     """Đo thời gian inference"""
@@ -165,23 +165,23 @@ def main():
     # Tạo thư mục output nếu chưa tồn tại
     os.makedirs(args.output, exist_ok=True)
 
-    # Load model
-    print(f"Loading model: {args.model}")
-    model_size = get_model_size(args.model)
-    print(f"Model size: {model_size:.2f} MB")
+    # # Load model
+    # print(f"Loading model: {args.model}")
+    # model_size = get_model_size(args.model)
+    # print(f"Model size: {model_size:.2f} MB")
     
-    initial_memory = get_memory_usage()
-    print(f"Initial memory usage: {initial_memory:.2f} MB")
+    # initial_memory = get_memory_usage()
+    # print(f"Initial memory usage: {initial_memory:.2f} MB")
     
     interpreter = tflite.Interpreter(model_path=args.model)
     interpreter.allocate_tensors()
     
-    after_load_memory = get_memory_usage()
-    print(f"Memory usage after loading model: {after_load_memory:.2f} MB")
-    print(f"Memory increase: {after_load_memory - initial_memory:.2f} MB")
+    # after_load_memory = get_memory_usage()
+    # print(f"Memory usage after loading model: {after_load_memory:.2f} MB")
+    # print(f"Memory increase: {after_load_memory - initial_memory:.2f} MB")
     
-    cpu_usage = get_cpu_usage()
-    print(f"CPU usage: {cpu_usage}%")
+    # cpu_usage = get_cpu_usage()
+    # print(f"CPU usage: {cpu_usage}%")
 
     # Khởi tạo YOLO helpers
     nms_layer, output_layers = build_det_helper()

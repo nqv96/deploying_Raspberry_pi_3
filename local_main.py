@@ -1,3 +1,4 @@
+import argparse
 import torch
 import tflite_runtime.interpreter as tflite
 import numpy as np
@@ -49,6 +50,7 @@ def detect_and_draw(image_path, interpreter, nms_layer, output_layers):
     resolution = input_shape[1:3]
 
     # Sử dụng hàm preprocess_image có sẵn từ eval_det.py
+    image_raw = Image.open(image_path).convert("RGB")
     image = Image.open(image_path).convert("RGB")
     image = image.resize(resolution[::-1])  # Resize theo width, height
     image_np = preprocess_image(image)
@@ -64,6 +66,11 @@ def detect_and_draw(image_path, interpreter, nms_layer, output_layers):
               for d in output_data]
     outputs = [output_layer(output)
               for output_layer, output in zip(output_layers, outputs)]
+    # In ra thông tin thô từ YOLO sau khi qua các output layers
+    # print("Raw model outputs after Yolo3Output layers:")
+    # for i, out in enumerate(outputs):
+    #     print(f"Output {i}: shape = {out.shape}")
+    #     print(out[0, :5])  # In 5 dòng đầu tiên (batch size 1)
     outputs = torch.cat(outputs, dim=1)
 
     # NMS và lọc kết quả
@@ -72,88 +79,104 @@ def detect_and_draw(image_path, interpreter, nms_layer, output_layers):
     n_positive = (scores > threshold).sum()
     ids = ids[0, :n_positive, 0].numpy()
     bboxes = bboxes[0, :n_positive].numpy()
-
+    scores = scores[0, :n_positive].numpy()
+    # print("\nResults after NMS and score thresholding:")
+    # for i in range(n_positive):
+    #     print(f"ID: {ids[i]}, Score: {scores[i]:.2f}, BBox: {bboxes[i]}")
     # Vẽ kết quả
     image_draw = ImageDraw.Draw(image)
     for bbox in bboxes:
         bbox = [int(x) for x in bbox]
         image_draw.rectangle(bbox, outline="red", width=2)
-        # print("Detected person at:", bbox)
+        print("Detected person at:", bbox)
     return image
 
-def get_model_size(model_path):
-    """Lấy kích thước của model file"""
-    size_bytes = os.path.getsize(model_path)
-    size_mb = size_bytes / (1024 * 1024)
-    return size_mb
+# def get_model_size(model_path):
+#     """Lấy kích thước của model file"""
+#     size_bytes = os.path.getsize(model_path)
+#     size_mb = size_bytes / (1024 * 1024)
+#     return size_mb
 
-def get_memory_usage():
-    """Lấy thông tin về RAM đang sử dụng"""
-    process = psutil.Process()
-    memory_info = process.memory_info()
-    return memory_info.rss / (1024 * 1024)  # Convert to MB
+# def get_memory_usage():
+#     """Lấy thông tin về RAM đang sử dụng"""
+#     process = psutil.Process()
+#     memory_info = process.memory_info()
+#     return memory_info.rss / (1024 * 1024)  # Convert to MB
 
-def get_cpu_usage():
-    """Lấy thông tin về CPU đang sử dụng"""
-    return psutil.cpu_percent()
+# def get_cpu_usage():
+#     """Lấy thông tin về CPU đang sử dụng"""
+#     return psutil.cpu_percent()
 
-def measure_inference_time(interpreter, input_data):
-    """Đo thời gian inference"""
-    start_time = time.time()
-    interpreter.set_tensor(interpreter.get_input_details()[0]['index'], input_data)
-    interpreter.invoke()
-    end_time = time.time()
-    return (end_time - start_time) * 1000  # Convert to milliseconds
+# def measure_inference_time(interpreter, input_data):
+#     """Đo thời gian inference"""
+#     start_time = time.time()
+#     interpreter.set_tensor(interpreter.get_input_details()[0]['index'], input_data)
+#     interpreter.invoke()
+#     end_time = time.time()
+#     return (end_time - start_time) * 1000  # Convert to milliseconds
+#-------------------------Version chay local----------------------------------
+# def main():
+#     # Load model
+#     MODEL_PATH = "/home/vuong/my_project/human-detection/detection.tflite"
+    
+#     # # Kiểm tra kích thước model
+#     # model_size = get_model_size(MODEL_PATH)
+#     # print(f"Model size: {model_size:.2f} MB")
+    
+#     # # Kiểm tra RAM trước khi load model
+#     # initial_memory = get_memory_usage()
+#     # print(f"Initial memory usage: {initial_memory:.2f} MB")
+    
+#     interpreter = tflite.Interpreter(model_path=MODEL_PATH)
+#     interpreter.allocate_tensors()
+#     # get input, output resolution
+#     input_details = interpreter.get_input_details()
+#     output_details = interpreter.get_output_details()
+#     input_shape = input_details[0]['shape']
+#     output_shape = output_details[0]['shape']
+#     resolution = output_shape[1:3]
+#     # print(output_shape, output_details)
+    
+#     # # Kiểm tra RAM sau khi load model
+#     # after_load_memory = get_memory_usage()
+#     # print(f"Memory usage after loading model: {after_load_memory:.2f} MB")
+#     # print(f"Memory increase: {after_load_memory - initial_memory:.2f} MB")
+    
+#     # # Kiểm tra CPU usage
+#     # cpu_usage = get_cpu_usage()
+#     # print(f"CPU usage: {cpu_usage}%")
 
+#     # Khởi tạo YOLO helpers
+#     nms_layer, output_layers = build_det_helper()
+
+#     # Test images
+#     test_images = [
+#         "/home/vuong/my_project/human-detection/images_test/art_16.jpg"
+#         # "/home/vuong/my_project/human-detection/images_test/image.png",
+#         # "/home/vuong/my_project/human-detection/images_test/34919511_122594755296479_501094598928498688_n.jpg"
+#     ]
+#     # Hiển thị kết quả
+#     plt.figure(figsize=(15, 5))
+#     for i, image_path in enumerate(test_images, 1):
+#         plt.subplot(1, 2, i)
+        
+#         # Đo thời gian inference
+#         image = Image.open(image_path).convert("RGB")
+#         input_shape = interpreter.get_input_details()[0]['shape']
+#         image = image.resize(input_shape[1:3][::-1])
+#         image_np = preprocess_image(image)
+#         # inference_time = measure_inference_time(interpreter, image_np)
+#         # print(f"Inference time: {inference_time:.2f} ms")
+#         result_image = detect_and_draw(image_path, interpreter, nms_layer, output_layers)
+#         plt.imshow(result_image)
+#         plt.axis('off')
+#     plt.show()
+#--------------------Version tham so dong lenh-----------------------------
 def main():
-    # Load model
-    MODEL_PATH = "/home/vuong/my_project/human-detection/detection.tflite"
-    
-    # Kiểm tra kích thước model
-    model_size = get_model_size(MODEL_PATH)
-    print(f"Model size: {model_size:.2f} MB")
-    
-    # Kiểm tra RAM trước khi load model
-    initial_memory = get_memory_usage()
-    print(f"Initial memory usage: {initial_memory:.2f} MB")
-    
-    interpreter = tflite.Interpreter(model_path=MODEL_PATH)
-    interpreter.allocate_tensors()
-    
-    # Kiểm tra RAM sau khi load model
-    after_load_memory = get_memory_usage()
-    print(f"Memory usage after loading model: {after_load_memory:.2f} MB")
-    print(f"Memory increase: {after_load_memory - initial_memory:.2f} MB")
-    
-    # Kiểm tra CPU usage
-    cpu_usage = get_cpu_usage()
-    print(f"CPU usage: {cpu_usage}%")
-
-    # Khởi tạo YOLO helpers
-    nms_layer, output_layers = build_det_helper()
-
-    # Test images
-    test_images = [
-        "/home/vuong/my_project/human-detection/images_test/image.png",
-    ]
-
-    # Hiển thị kết quả
-    plt.figure(figsize=(15, 5))
-    for i, image_path in enumerate(test_images, 1):
-        plt.subplot(1, 2, i)
-        
-        # Đo thời gian inference
-        image = Image.open(image_path).convert("RGB")
-        input_shape = interpreter.get_input_details()[0]['shape']
-        image = image.resize(input_shape[1:3][::-1])
-        image_np = preprocess_image(image)
-        inference_time = measure_inference_time(interpreter, image_np)
-        print(f"Inference time: {inference_time:.2f} ms")
-        
-        result_image = detect_and_draw(image_path, interpreter, nms_layer, output_layers)
-        plt.imshow(result_image)
-        plt.axis('off')
-    plt.show()
+    parser = argparse.ArgumentParser(description="YOLOv3 TinyLite human detection script")
+    parser.add_argument("--model", required=True, help = "Path to .tflite model")
+    parser.add_argument("--images", nargs="+", help="List of image paths to test")
+    parser.add_argument("--score_thr")
 
 if __name__ == "__main__":
     main()
