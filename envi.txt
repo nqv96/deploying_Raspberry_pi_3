@@ -1,7 +1,26 @@
-pip3 install --extra-index-url https://google-coral.github.io/py-repo/ tflite_runtime==2.8.0
+Cài tflite_runtime có vài option sau:
+- pip3 install --extra-index-url https://google-coral.github.io/py-repo/ tflite_runtime==2.8.0
+- pip3 install https://github.com/ricardodeazambuja/rpi-tflite/releases/download/v2.8.0/tflite_runtime- 2.8.0-cp39-cp39-linux_armv7l.whl
+
+-------------------------------------------------------------------------------------------
 pip3 install Pillow==9.0.0
 pip3 install matplotlib==3.3.4
 Chú ý Nếu chỉ dùng để hiển thị ảnh đơn giản, có thể bỏ qua và dùng PIL.Image.show()
-
-command line: 
+-------------------------------------------------------------------------------------------
+Cài đặt python 3.9
+sudo apt update
+sudo apt install python3.9 python3.9-venv python3.9-dev
+-------------------------------------------------------------------------------------------
+Tạo venv:
+python3.9 -m venv tflite39-env
+source tflite39-env/bin/activate
+-------------------------------------------------------------------------------------------
+Tạo file requirements để install thuận tiện hơn:
+pip freeze > requirements.txt
+-------------------------------------------------------------------------------------------
+command line chay model: 
 python new_1.py --model path_to_model --image path_to_image --conf 0.1 --nms 0.45 --output path_to_folder_result_image/test.jpg --show
+-------------------------------------------------------------------------------------------
+Có thể cài tkiner thay cho matplotlib, chạy gần với realtime mà không cần cv2.imshow()
+sudo apt update
+sudo apt install python3-tk

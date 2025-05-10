@@ -187,8 +187,6 @@ def draw_boxes(img, boxes, scores):
     plt.axis("off")
     plt.show()
 
-# def main():
-
 def main():
     parser = argparse.ArgumentParser(description="MobileNetV2+YOLOv3 TinyLite human detection script")
     parser.add_argument("--model", required=True, help="Path to .tflite model")
@@ -314,103 +312,5 @@ def main():
     if args.show and len(args.images) > 1:
         plt.tight_layout()
         plt.show()
-    parser = argparse.ArgumentParser(description="MobileNetV2+YOLOv3 TinyLite human detection script")
-    parser.add_argument("--model", required=True, help="Path to .tflite model")
-    parser.add_argument("--image", required=True, help="Path to image for detection")
-    parser.add_argument("--conf", type=float, default=0.1, help="Confidence threshold (default: 0.1)")
-    parser.add_argument("--nms", type=float, default=0.45, help="NMS threshold (default: 0.45)")
-    parser.add_argument("--output", help="Path to save output image (optional)")
-    parser.add_argument('--show', action='store_true', help="Show result images using matplotlib")
-    
-    args = parser.parse_args()
-    interpreter = tflite.Interpreter(model_path=args.model)
-    interpreter.allocate_tensors()
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    input_shape = input_details[0]['shape']
-    resolution = input_shape[1:3]
-
-    # Load và resize ảnh
-    image = Image.open(args.image).convert("RGB")
-    image = image.resize(resolution[::-1])  # Resize theo width, height
-    image_np = preprocess_image(image)
-    
-    # Inference
-    interpreter.set_tensor(input_details[0]['index'], image_np)
-    start_time = time.time()
-    interpreter.invoke()
-    inference_time = time.time() - start_time
-    
-    # Decode all outputs
-    all_boxes = []
-    all_scores = []
-    for i, detail in enumerate(output_details):
-        output = interpreter.get_tensor(detail['index'])
-        output = np.squeeze(output)
-        
-        # Reshape output
-        output = output.reshape((output.shape[0], output.shape[1], 3, 6))
-        
-        boxes, scores = decode_yolo_output(output, anchors[i], strides[i])
-        mask = scores > args.conf
-        if np.any(mask):
-            all_boxes.append(boxes[mask])
-            all_scores.append(scores[mask])
-
-    # Kết hợp boxes từ các scales khác nhau
-    if all_boxes and any(len(b) > 0 for b in all_boxes):
-        all_boxes = np.concatenate([b for b in all_boxes if len(b) > 0], axis=0)
-        all_scores = np.concatenate([s for s in all_scores if len(s) > 0], axis=0)
-        
-        # print(f"Total boxes before NMS: {len(all_boxes)}")
-        
-        # Áp dụng custom NMS với merge=True (giống MergeNMS)
-        start_time = time.time()
-        final_boxes, final_scores = custom_nms(all_boxes, all_scores, iou_threshold=nms_threshold, merge=True)
-        nms_time = time.time() - start_time
-        # print(f"NMS time: {nms_time*1000:.1f} ms")
-        
-        # print(f"Final boxes after NMS: {len(final_boxes)}")
-        
-        # Load ảnh gốc
-        image_raw = Image.open(args.image).convert("RGB")
-        w_orig, h_orig = image_raw.size
-
-        # Scale boxes về kích thước ảnh gốc
-        scale_w = w_orig / resolution[1]
-        scale_h = h_orig / resolution[0]
-
-        final_boxes[:, [0, 2]] *= scale_w
-        final_boxes[:, [1, 3]] *= scale_h
-        
-        # Clip các giá trị
-        final_boxes[:, [0, 2]] = np.clip(final_boxes[:, [0, 2]], 0, w_orig)
-        final_boxes[:, [1, 3]] = np.clip(final_boxes[:, [1, 3]], 0, h_orig)
-        
-        if args.show:
-            plt.figure(figsize=(15, 5))
-        draw = ImageDraw.Draw(image_raw)
-        for box, score in zip(final_boxes, final_scores):
-            x1, y1, x2, y2 = box
-            draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
-            draw.ellipse([(x1 + x2)/2 - 2, (y1 + y2)/2 - 2, (x1 + x2)/2 + 2, (y1 + y2)/2 + 2], fill="blue")
-            draw.text((x1, y1), f"person {score:.2f}", fill="red")
-        
-        # Lưu hoặc hiển thị kết quả
-        if args.output:
-            image_raw.save(args.output)
-            print(f"Result saved to {args.output}")
-        else:
-            plt.figure(figsize=(8, 8))
-            plt.imshow(image_raw)
-            plt.axis("off")
-            plt.show()
-        
-        for i, (box, score) in enumerate(zip(final_boxes, final_scores)):
-            x1, y1, x2, y2 = box
-            print(f"[{i}] x1={x1:.1f}, y1={y1:.1f}, x2={x2:.1f}, y2={y2:.1f}, score={score:.2f}")
-    else:
-        print("No detections found above confidence threshold.")
-    
 if __name__ == "__main__":
     main()
