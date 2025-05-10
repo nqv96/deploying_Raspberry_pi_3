@@ -24,7 +24,7 @@ input_size = 416  # Kích thước ảnh đầu vào của mô hình (thường 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-def decode_yolo_output(feat, anchors, stride):
+# def decode_yolo_output(feat, anchors, stride):
     grid_h, grid_w, num_anchors, _ = feat.shape
     
     # Tạo grid với dimensions chính xác
@@ -59,6 +59,7 @@ def decode_yolo_output(feat, anchors, stride):
     scores = objectness * class_probs
     
     return boxes, scores
+
 
 def preprocess_image(image):
     image_np = np.array(image)[None, ...]

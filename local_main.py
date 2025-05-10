@@ -51,8 +51,13 @@ def detect_and_draw(image_path, interpreter, nms_layer, output_layers):
 
     # Sử dụng hàm preprocess_image có sẵn từ eval_det.py
     image_raw = Image.open(image_path).convert("RGB")
+    # ti le anh goc 
+    orig_w, orig_h = image_raw.size
+
     image = Image.open(image_path).convert("RGB")
-    image = image.resize(resolution[::-1])  # Resize theo width, height
+    image = image.resize(resolution[::-1])  # Resize theo width, height  
+    scale_x = orig_w / resolution[1]
+    scale_y = orig_h / resolution[0]
     image_np = preprocess_image(image)
 
     # Inference
@@ -80,16 +85,21 @@ def detect_and_draw(image_path, interpreter, nms_layer, output_layers):
     ids = ids[0, :n_positive, 0].numpy()
     bboxes = bboxes[0, :n_positive].numpy()
     scores = scores[0, :n_positive].numpy()
+    
+    # Chuyển bbox từ resize -> ảnh gốc
+    bboxes[:, [0, 2]] = bboxes[:, [0, 2]] * scale_x
+    bboxes[:, [1, 3]] = bboxes[:, [1, 3]] * scale_y
     # print("\nResults after NMS and score thresholding:")
     # for i in range(n_positive):
     #     print(f"ID: {ids[i]}, Score: {scores[i]:.2f}, BBox: {bboxes[i]}")
     # Vẽ kết quả
-    image_draw = ImageDraw.Draw(image)
-    for bbox in bboxes:
+    image_draw = ImageDraw.Draw(image_raw)
+    for i,bbox in enumerate(bboxes):
         bbox = [int(x) for x in bbox]
         image_draw.rectangle(bbox, outline="red", width=2)
+        image_draw.text((bbox[0], bbox[1] - 10), f"{float(scores[i]):.2f}", fill="red") 
         print("Detected person at:", bbox)
-    return image
+    return image_raw
 
 # def get_model_size(model_path):
 #     """Lấy kích thước của model file"""
@@ -172,11 +182,47 @@ def detect_and_draw(image_path, interpreter, nms_layer, output_layers):
 #         plt.axis('off')
 #     plt.show()
 #--------------------Version tham so dong lenh-----------------------------
+
+def measure_inference_time(interpreter, input_data):
+    start_time = time.time()
+    interpreter.set_tensor(interpreter.get_input_details()[0]['index'], input_data)
+    interpreter.invoke()
+    end_time = time.time()
+    return (end_time - start_time) * 1000  # ms
+
 def main():
     parser = argparse.ArgumentParser(description="YOLOv3 TinyLite human detection script")
     parser.add_argument("--model", required=True, help = "Path to .tflite model")
     parser.add_argument("--images", nargs="+", help="List of image paths to test")
-    parser.add_argument("--score_thr")
+    # parser.add_argument("--score_thresh", type=float, default=0.3, help="Score threshold for detection")
+    parser.add_argument('--show', action='store_true', help="Show result images using matplotlib")
+    parser.add_argument('--time', action='store_true', help="Print inference time")
+    args = parser.parse_args()
+    interpreter = tflite.Interpreter(model_path=args.model)
+    interpreter.allocate_tensors()
+    nms_layer, output_layers = build_det_helper()
+    if args.show:
+        plt.figure(figsize=(15, 5))
+    for i, image_path in enumerate(args.images, 1):
+        image = Image.open(image_path).convert("RGB")
+        input_shape = interpreter.get_input_details()[0]['shape']
+        image = image.resize(input_shape[1:3][::-1])
+        image_np = preprocess_image(image)
+
+        if args.time:
+            inference_time = measure_inference_time(interpreter, image_np)
+            print(f"Inference time on {os.path.basename(image_path)}: {inference_time:.2f} ms")
+
+        result_image = detect_and_draw(image_path, interpreter, nms_layer, output_layers)
+
+        if args.show:
+            plt.subplot(1, len(args.images), i)
+            plt.imshow(result_image)
+            plt.title(os.path.basename(image_path))
+            plt.axis('off')
+    if args.show:
+        plt.tight_layout()
+        plt.show()
 
 if __name__ == "__main__":
     main()

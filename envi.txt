@@ -1,0 +1,7 @@
+pip3 install --extra-index-url https://google-coral.github.io/py-repo/ tflite_runtime==2.8.0
+pip3 install Pillow==9.0.0
+pip3 install matplotlib==3.3.4
+Chú ý Nếu chỉ dùng để hiển thị ảnh đơn giản, có thể bỏ qua và dùng PIL.Image.show()
+
+command line: 
+python new_1.py --model path_to_model --image path_to_image --conf 0.1 --nms 0.45 --output path_to_folder_result_image/test.jpg --show
