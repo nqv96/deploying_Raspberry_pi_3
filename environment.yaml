@@ -1,45 +1,72 @@
 name: ai-env
 channels:
   - pytorch
+  - conda-forge
   - defaults
   - https://repo.anaconda.com/pkgs/main
   - https://repo.anaconda.com/pkgs/r
 dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=5.1=1_gnu
+  - aom=3.6.0=h6a678d5_0
   - blas=1.0=mkl
   - brotli-python=1.0.9=py310h6a678d5_9
   - bzip2=1.0.8=h5eee18b_6
-  - ca-certificates=2025.2.25=h06a4308_0
+  - ca-certificates=2025.4.26=hbd8a1cb_0
+  - cairo=1.16.0=hb05425b_5
   - certifi=2025.4.26=py310h06a4308_0
   - charset-normalizer=3.3.2=pyhd3eb1b0_0
   - cpuonly=2.0=0
   - cudatoolkit=11.8.0=h6a678d5_0
+  - dav1d=1.2.1=h5eee18b_0
+  - expat=2.7.1=h6a678d5_0
+  - ffmpeg=6.1.1=h2a67f75_3
   - filelock=3.17.0=py310h06a4308_0
+  - fontconfig=2.14.1=h55d465d_3
   - freetype=2.13.3=h4a9f257_0
+  - giflib=5.2.1=h36c2ea0_2
+  - glib=2.78.4=h6a678d5_0
+  - glib-tools=2.78.4=h6a678d5_0
   - gmp=6.3.0=h6a678d5_0
   - gmpy2=2.2.1=py310h5eee18b_0
   - gnutls=3.6.15=he1e5248_0
+  - graphite2=1.3.14=h295c915_1
+  - gstreamer=1.14.1=h5eee18b_1
+  - harfbuzz=10.2.0=hf296adc_0
+  - icu=73.1=h6a678d5_0
   - idna=3.7=py310h06a4308_0
   - intel-openmp=2023.1.0=hdb19cb5_46306
   - jinja2=3.1.6=py310h06a4308_0
   - jpeg=9e=h5eee18b_3
+  - lame=3.100=h7f98852_1001
   - lcms2=2.16=hb9589c4_0
   - ld_impl_linux-64=2.40=h12ee557_0
+  - leptonica=1.82.0=h42c8aad_2
   - lerc=4.0.0=h6a678d5_0
+  - libarchive=3.7.7=hfab0078_0
   - libdeflate=1.22=h5eee18b_0
   - libffi=3.4.4=h6a678d5_1
   - libgcc-ng=11.2.0=h1234567_1
+  - libglib=2.78.4=hdc74915_0
   - libgomp=11.2.0=h1234567_1
+  - libiconv=1.17=h166bdaf_0
   - libidn2=2.3.4=h5eee18b_0
   - libjpeg-turbo=2.0.0=h9bf148f_0
+  - libogg=1.3.4=h7f98852_1
+  - libopus=1.3.1=h7f98852_1
   - libpng=1.6.39=h5eee18b_0
   - libstdcxx-ng=11.2.0=h1234567_1
   - libtasn1=4.19.0=h5eee18b_0
+  - libtheora=1.1.1=h7f98852_1005
   - libtiff=4.5.1=hffd6297_1
   - libunistring=0.9.10=h27cfd23_0
   - libuuid=1.41.5=h5eee18b_0
+  - libvorbis=1.3.7=h9c3ff4c_0
+  - libvpx=1.13.1=h6a678d5_0
+  - libwebp=1.3.2=h11a3e52_0
   - libwebp-base=1.3.2=h5eee18b_1
+  - libxcb=1.17.0=h9b100fa_0
+  - libxml2=2.13.8=hfdd30dd_0
   - llvm-openmp=14.0.6=h9e868ea_0
   - lz4-c=1.9.4=h6a678d5_1
   - markupsafe=3.0.2=py310h5eee18b_0
@@ -55,11 +82,15 @@ dependencies:
   - networkx=3.4.2=py310h06a4308_0
   - numpy=1.26.4=py310h5f9d8c6_0
   - numpy-base=1.26.4=py310hb5e798b_0
+  - openh264=2.1.1=h780b84a_0
   - openjpeg=2.5.2=he7f1fd0_0
   - openssl=3.0.16=h5eee18b_0
+  - pcre2=10.42=hebb0a14_1
   - pillow=11.1.0=py310hcea889d_0
   - pip=25.0=py310h06a4308_0
+  - pixman=0.40.0=h36c2ea0_0
   - psutil=5.9.0=py310h5eee18b_1
+  - pthread-stubs=0.4=h36c2ea0_1001
   - pysocks=1.7.1=py310h06a4308_0
   - python=3.10.16=he870216_1
   - pytorch=2.5.1=py3.10_cpu_0
@@ -69,14 +100,15 @@ dependencies:
   - requests=2.32.3=py310h06a4308_1
   - setuptools=75.8.0=py310h06a4308_0
   - sqlite=3.45.3=h5eee18b_0
-  - sympy=1.13.3=py310h06a4308_1
   - tbb=2021.8.0=hdb19cb5_0
+  - tesseract=5.2.0=h6a678d5_2
   - tk=8.6.14=h39e8969_0
   - torchvision=0.15.2=cuda118py310h196c800_0
   - typing_extensions=4.12.2=py310h06a4308_0
-  - tzdata=2025a=h04d1e81_0
   - urllib3=2.3.0=py310h06a4308_0
   - wheel=0.45.1=py310h06a4308_0
+  - xorg-libxau=1.0.12=h9b100fa_0
+  - xorg-libxdmcp=1.1.5=h9b100fa_0
   - xz=5.6.4=h5eee18b_1
   - yaml=0.2.5=h7b6447c_0
   - zlib=1.2.13=h5eee18b_1
@@ -85,10 +117,24 @@ dependencies:
       - contourpy==1.3.2
       - cycler==0.12.1
       - fonttools==4.57.0
+      - fsspec==2025.3.2
       - kiwisolver==1.4.8
       - matplotlib==3.10.1
+      - ncnn==1.0.20250503
+      - opencv-python==4.11.0.86
+      - pandas==2.2.3
+      - portalocker==3.1.1
+      - py-cpuinfo==9.0.0
       - pyparsing==3.2.3
       - python-dateutil==2.9.0.post0
+      - pytz==2025.2
+      - scipy==1.15.3
+      - seaborn==0.13.2
       - six==1.17.0
+      - sympy==1.13.1
       - tflite-runtime==2.14.0
+      - tqdm==4.67.1
+      - tzdata==2025.2
+      - ultralytics==8.3.130
+      - ultralytics-thop==2.0.14
 prefix: /home/vuong/miniconda3/envs/ai-env
